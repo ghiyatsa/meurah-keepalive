@@ -28,6 +28,13 @@ jobs:
             https://ghiyatsa-meurah.hf.space || true)
           echo "Respons demo: HTTP ${code:-tidak ada}"
 
+      - name: Hubungi Meurah API (backend)
+        run: |
+          # Ping /api/health sekaligus memverifikasi arsip akademik termuat.
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 300 \
+            https://ghiyatsa-meurah-api.hf.space/api/health || true)
+          echo "Respons API: HTTP ${code:-tidak ada}"
+
       - name: Segarkan timer aktivitas repo
         env:
           GH_TOKEN: ${{ github.token }}
