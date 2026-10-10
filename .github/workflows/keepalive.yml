@@ -1,0 +1,39 @@
+# Menjaga demo Meurah (Space Hugging Face) tetap terjaga.
+#
+# Space gratis di Hugging Face tertidur setelah 48 jam tanpa permintaan;
+# alur kerja ini mengirim satu permintaan ringan setiap 12 jam sehingga
+# ambang tersebut tidak pernah tercapai.
+name: Jaga demo Meurah
+
+on:
+  schedule:
+    # 02.00 & 14.00 UTC = 09.00 & 21.00 WIB
+    - cron: "0 2,14 * * *"
+  # Bisa dijalankan manual dari tab Actions.
+  workflow_dispatch:
+
+# Hanya perlu izin menulis Actions (untuk menyegarkan timer jadwal).
+permissions:
+  actions: write
+
+jobs:
+  jaga:
+    name: Ping demo + segarkan jadwal
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Hubungi demo Meurah
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 300 \
+            https://ghiyatsa-meurah.hf.space || true)
+          echo "Respons demo: HTTP ${code:-tidak ada}"
+
+      - name: Segarkan timer aktivitas repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT \
+            "repos/${{ github.repository }}/actions/workflows/keepalive.yml/enable" \
+            --silent \
+            && echo "Timer 60 hari disegarkan." \
+            || echo "Penyegaran timer dilewati."
